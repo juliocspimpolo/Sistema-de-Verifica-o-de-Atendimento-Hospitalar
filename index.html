@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ferramentas Unnimax</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0; /* Remove margem padrão do body */
+            background-color: #f9f9f9;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Centraliza verticalmente */
+            align-items: center; /* Centraliza horizontalmente */
+            min-height: 100vh; /* Garante que a página ocupe a altura total da viewport */
+            padding: 20px; /* Adiciona um padding geral para não ficar colado nas bordas */
+            box-sizing: border-box; /* Inclui padding e borda no cálculo da largura/altura */
+        }
+        .logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 150px;
+            height: auto;
+            z-index: 100;
+        }
+        h2 {
+            text-align: center;
+            color: #007bff;
+            margin-top: 40px;
+            margin-bottom: 25px;
+            width: 100%; /* Garante que o título ocupe a largura total disponível */
+            max-width: 800px; /* Limita a largura para melhor leitura */
+        }
+        .container-paineis {
+            display: flex;
+            flex-wrap: wrap; /* Permite que os painéis quebrem a linha em telas menores */
+            gap: 30px; /* Espaçamento entre os painéis */
+            justify-content: center; /* Centraliza os painéis quando há espaço */
+            align-items: flex-start; /* Alinha os painéis ao topo */
+            max-width: 1000px; /* Limita a largura máxima do container */
+            width: 100%; /* Ocupa a largura total disponível dentro do max-width */
+        }
+        .painel {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 30px;
+            text-align: center;
+            flex: 1; /* Permite que os painéis cresçam para preencher o espaço */
+            min-width: 280px; /* Largura mínima para evitar que fiquem muito estreitos */
+            max-width: 32%; /* Ajusta a largura para 3 painéis por linha (aprox.) */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* Empurra o botão para baixo */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .painel:hover {
+            transform: translateY(-5px); /* Efeito de elevação ao passar o mouse */
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        .painel h3 {
+            color: #0056b3;
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-size: 1.5rem;
+        }
+        .painel p {
+            color: #666;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 20px; /* Ajustado para dar espaço ao link de download */
+            flex-grow: 1; /* Permite que o parágrafo ocupe o espaço restante */
+        }
+        .painel .download-link-section {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+            text-align: left; /* Alinhar o texto do link à esquerda */
+        }
+        .painel .download-link-section h5 {
+            margin: 0 0 8px 0;
+            color: #555;
+            font-size: 0.95rem;
+        }
+        .painel .download-link-section a {
+            color: #007bff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            display: block; /* Para que cada link ocupe sua própria linha */
+            margin-bottom: 5px;
+        }
+        .painel .download-link-section a:hover {
+            text-decoration: underline;
+        }
+        .painel button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            width: 100%; /* Botão ocupa a largura total do painel */
+            box-sizing: border-box; /* Inclui padding no cálculo da largura */
+            margin-top: 20px; /* Adiciona margem acima do botão */
+        }
+        .painel button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        /* Responsividade */
+        @media (max-width: 900px) {
+            .painel {
+                max-width: 48%; /* 2 painéis por linha em telas médias */
+            }
+        }
+        @media (max-width: 600px) {
+            .logo {
+                width: 100px;
+            }
+            h2 {
+                font-size: 1.8rem;
+                margin-top: 20px;
+            }
+            .container-paineis {
+                flex-direction: column; /* 1 painel por linha em telas pequenas */
+                align-items: center;
+            }
+            .painel {
+                max-width: 90%; /* Ocupa quase a largura total */
+                min-width: unset; /* Remove min-width para maior flexibilidade */
+            }
+        }
+    </style>
+</head>
+<body>
+    <img class="logo" src="" alt="Logo Unnimax">
+
+    <h2>Ferramentas de Saúde</h2>
+
+    <div class="container-paineis">
+        <div class="painel">
+            <h3>Demonstrativo de Disponibilidade</h3>
+            <p>Visualize a disponibilidade de planos por UF e cidade, com detalhes de recursos contratados ou não.</p>
+            <div class="download-link-section">
+                <h5>Arquivos de Exemplo:</h5>
+                <a href="data/planos_exemplo.xlsx" download>Baixar Exemplo de Planos</a>
+                </div>
+            <button onclick="window.location.href='demonstrativo-disponibilidade.html'">Acessar</button>
+        </div>
+
+        <div class="painel">
+            <h3>Comparativo de Planos</h3>
+            <p>Compare diferentes planos lado a lado para tomar decisões informadas sobre a melhor opção.</p>
+            <div class="download-link-section">
+                <h5>Arquivos de Exemplo:</h5>
+                <a href="data/comparativo_exemplo.xlsx" download>Baixar Exemplo para Comparativo</a>
+            </div>
+            <button onclick="window.location.href='comparativo-planos.html'">Acessar</button>
+        </div>
+
+        <div class="painel">
+            <h3>Quantitativo de Planos</h3>
+            <p>Obtenha uma visão quantitativa dos planos, analisando volumes e estatísticas gerais.</p>
+            <div class="download-link-section">
+                <h5>Arquivos de Exemplo:</h5>
+                <a href="data/quantitativo_exemplo.xlsx" download>Baixar Exemplo para Quantitativo</a>
+            </div>
+            <button onclick="window.location.href='quantitativo-planos.html'">Acessar</button>
+        </div>
+    </div>
+
+</body>
+</html>

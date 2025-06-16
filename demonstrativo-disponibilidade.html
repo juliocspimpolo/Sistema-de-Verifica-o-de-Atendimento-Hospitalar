@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Comparativo de Planos</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+            height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+        }
+        .logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 200px;
+            height: auto;
+            z-index: 100;
+        }
+        h2 {
+            text-align: center;
+            color: #007bff;
+            margin-top: 40px;
+            margin-bottom: 25px;
+        }
+        h5 {
+            text-align: center;
+            color: #666;
+            margin-top: -15px;
+            margin-bottom: 20px;
+            font-weight: normal;
+        }
+        input[type="file"], button {
+            margin: 5px;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 15px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        table {
+            border-collapse: collapse;
+            margin-top: 0;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        table thead th {
+            background-color: #e0e0e0;
+            color: #333;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        table tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        table tbody tr:hover {
+            background-color: #e9e9e9;
+        }
+        .container-principal {
+            display: flex;
+            gap: 20px;
+            margin-top: 0;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+        .coluna-esquerda {
+            flex: 0 0 280px;
+            max-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow-y: auto;
+        }
+        .coluna-direita {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            min-height: 0;
+            overflow: hidden;
+        }
+        #tabela {
+            flex: 1;
+            overflow-x: auto;
+            overflow-y: auto;
+            margin-top: 0;
+            padding-right: 5px;
+        }
+        #tabela p {
+            text-align: center;
+            color: #666;
+            margin-top: 20px;
+            font-style: italic;
+        }
+        .filtros {
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 0;
+        }
+        .checkbox-list {
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 8px;
+            background-color: #fcfcfc;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .checkbox-item input[type="checkbox"] {
+            margin-right: 8px;
+            min-height: unset;
+            width: auto;
+        }
+        .checkbox-item label {
+            flex-grow: 1;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+        .filter-label-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .select-all-btn {
+            background: none;
+            border: none;
+            color: #007bff;
+            font-size: 0.8rem;
+            cursor: pointer;
+            padding: 0 5px;
+            margin: 0;
+            text-decoration: underline;
+        }
+        .select-all-btn:hover {
+            color: #0056b3;
+        }
+        .filter-search-input {
+            width: calc(100% - 16px);
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 0.9rem;
+        }
+        .hospital-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            z-index: 1000;
+            max-height: 80vh;
+            overflow-y: auto;
+            border-radius: 8px;
+            width: 300px;
+        }
+        .hospital-popup h4 {
+            margin-top: 0;
+            color: #007bff;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .hospital-popup ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .hospital-popup li {
+            padding: 5px 0;
+            border-bottom: 1px dashed #eee;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        .hospital-popup li:last-child {
+            border-bottom: none;
+        }
+        .hospital-popup .close-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+            float: right;
+        }
+        .hospital-popup .close-btn:hover {
+            background-color: #c82333;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                height: auto;
+                margin: 10px;
+                overflow-y: auto;
+            }
+            .logo {
+                top: 10px;
+                left: 10px;
+                width: 80px;
+            }
+            h2 {
+                margin-top: 30px;
+            }
+            .container-principal {
+                flex-direction: column;
+                margin-top: 20px;
+            }
+            .coluna-esquerda {
+                flex: none;
+                max-width: 100%;
+                width: 100%;
+                align-self: stretch;
+            }
+            .coluna-direita {
+                width: 100%;
+                height: auto;
+                max-height: 60vh;
+                padding: 10px;
+                flex-shrink: 1;
+            }
+            #tabela {
+                flex: unset;
+                height: 100%;
+            }
+            .filtros {
+                flex-direction: row;
+                justify-content: center;
+            }
+            .filtro-card {
+                min-width: unset;
+                flex-grow: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <img class="logo" src="" alt="Logo Unnimax">
+
+    <h2>Demonstrativo de Disponibilidade</h2>
+    <h5>
+        ✅ - Possuem Atendimento / ❌ - Não Possuem Atendimento
+    </h5>
+
+    <div class="container-principal">
+        <div class="coluna-esquerda">
+            <input type="file" id="upload" accept=".xlsx, .xls" />
+            <div class="filtros">
+                <div class="filtro-card">
+                    <div class="filter-label-container">
+                        <label>UF:</label>
+                        <button type="button" class="select-all-btn" data-target="uf-checkboxes">Marcar e Desmarcar Todos</button>
+                    </div>
+                    <input type="text" class="filter-search-input" id="search-uf" placeholder="Buscar UF..." data-target-list="uf-checkboxes">
+                    <div id="uf-checkboxes" class="checkbox-list"></div>
+                </div>
+                <div class="filtro-card">
+                    <div class="filter-label-container">
+                        <label>Cidade:</label>
+                        <button type="button" class="select-all-btn" data-target="cidade-checkboxes">Marcar e Desmarcar Todos</button>
+                    </div>
+                    <input type="text" class="filter-search-input" id="search-cidade" placeholder="Buscar Cidade..." data-target-list="cidade-checkboxes">
+                    <div id="cidade-checkboxes" class="checkbox-list"></div>
+                </div>
+                <div class="filtro-card">
+                    <div class="filter-label-container">
+                        <label>Operadora:</label>
+                        <button type="button" class="select-all-btn" data-target="operadora-checkboxes">Marcar e Desmarcar Todos</button>
+                    </div>
+                    <input type="text" class="filter-search-input" id="search-operadora" placeholder="Buscar Operadora..." data-target-list="operadora-checkboxes">
+                    <div id="operadora-checkboxes" class="checkbox-list"></div>
+                </div>
+                <div class="filtro-card">
+                    <div class="filter-label-container">
+                        <label>Plano:</label>
+                        <button type="button" class="select-all-btn" data-target="plano-checkboxes">Marcar e Desmarcar Todos</button>
+                    </div>
+                    <input type="text" class="filter-search-input" id="search-plano" placeholder="Buscar Plano..." data-target-list="plano-checkboxes">
+                    <div id="plano-checkboxes" class="checkbox-list"></div>
+                </div>
+                <div class="filtro-card">
+                    <div class="filter-label-container">
+                        <label>Disponibilidade:</label>
+                    </div>
+                    <div id="disponibilidade-checkboxes" class="checkbox-list">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="disponibilidade-com" value="✅">
+                            <label for="disponibilidade-com">Contratado (✅)</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="disponibilidade-sem" value="❌">
+                            <label for="disponibilidade-sem">Não Contratado (❌)</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button id="downloadBtn">Download Excel</button>
+        </div>
+
+        <div class="coluna-direita">
+            <div id="tabela"></div>
+        </div>
+    </div>
+
+    <div id="hospital-popup" class="hospital-popup" style="display: none;">
+        <h4>Detalhes do Recurso:</h4>
+        <ul id="hospital-list"></ul>
+        <button class="close-btn" onclick="document.getElementById('hospital-popup').style.display='none'">Fechar</button>
+    </div>
+
+<script>
+    let dadosConsolidadosPorCnpjUfCidadePlano = new Map(); 
+    let allUFs = [];
+    let allCidades = [];
+    let allOperadoras = [];
+    let allPlanos = []; 
+
+    let currentSelectedUFs = new Set();
+    let currentSelectedCidades = new Set();
+    let currentSelectedOperadoras = new Set();
+    let currentSelectedPlanos = new Set();
+    let currentSelectedDisponibilidade = new Set(); 
+
+    function preencherCheckboxes(containerId, valoresDisponiveis, currentSelectedSet, searchTerm = '') {
+        const container = document.getElementById(containerId);
+        
+        if (containerId === 'disponibilidade-checkboxes') {
+            const comRecursos = document.getElementById('disponibilidade-com');
+            const semRecursos = document.getElementById('disponibilidade-sem');
+
+            comRecursos.checked = currentSelectedDisponibilidade.has('✅');
+            semRecursos.checked = currentSelectedDisponibilidade.has('❌');
+
+            comRecursos.onchange = function() {
+                if (this.checked) currentSelectedDisponibilidade.add('✅'); else currentSelectedDisponibilidade.delete('✅');
+                atualizarFiltros();
+            };
+            semRecursos.onchange = function() {
+                if (this.checked) currentSelectedDisponibilidade.add('❌'); else currentSelectedDisponibilidade.delete('❌');
+                atualizarFiltros();
+            };
+            return; 
+        }
+
+        container.innerHTML = ''; 
+
+        const valoresParaExibir = [...new Set(valoresDisponiveis)]
+            .filter(v => v !== undefined && v !== null && String(v).trim() !== '')
+            .map(v => String(v).trim().toUpperCase()); 
+
+        const valoresUnicosSorted = [...new Set(valoresParaExibir)].sort();
+
+        valoresUnicosSorted.forEach(v => {
+            const shouldBeVisibleBySearch = !searchTerm || v.includes(searchTerm.trim().toUpperCase());
+
+            if (shouldBeVisibleBySearch) {
+                const divItem = document.createElement('div');
+                divItem.className = 'checkbox-item';
+
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.id = `${containerId}-${v.replace(/[^a-zA-Z0-9]/g, '-')}`; 
+                input.value = v;
+                input.name = input.id;
+
+                const label = document.createElement('label');
+                label.htmlFor = input.id;
+                label.textContent = v;
+
+                if (currentSelectedSet.has(v)) {
+                    input.checked = true;
+                }
+
+                input.addEventListener('change', function() {
+                    const value = this.value;
+                    const targetSet = getTargetSet(containerId);
+
+                    if (this.checked) {
+                        targetSet.add(value);
+                    } else {
+                        targetSet.delete(value);
+                    }
+                    atualizarFiltros();
+                });
+
+                divItem.appendChild(input);
+                divItem.appendChild(label);
+                container.appendChild(divItem);
+            }
+        });
+    }
+
+    function getTargetSet(containerId) {
+        if (containerId === 'uf-checkboxes') return currentSelectedUFs;
+        if (containerId === 'cidade-checkboxes') return currentSelectedCidades;
+        if (containerId === 'operadora-checkboxes') return currentSelectedOperadoras;
+        if (containerId === 'plano-checkboxes') return currentSelectedPlanos;
+        if (containerId === 'disponibilidade-checkboxes') return currentSelectedDisponibilidade;
+        return new Set();
+    }
+
+    function atualizarFiltros() {
+        const searchUfTerm = document.getElementById('search-uf').value;
+        const searchCidadeTerm = document.getElementById('search-cidade').value;
+        const searchOperadoraTerm = document.getElementById('search-operadora').value;
+        const searchPlanoTerm = document.getElementById('search-plano').value;
+
+        preencherCheckboxes('uf-checkboxes', allUFs, currentSelectedUFs, searchUfTerm);
+
+        const cidadesPossiveisPorUF = new Set();
+        dadosConsolidadosPorCnpjUfCidadePlano.forEach(item => {
+            if (currentSelectedUFs.size === 0 || currentSelectedUFs.has(item.UF)) {
+                if (item.CIDADE) cidadesPossiveisPorUF.add(item.CIDADE);
+            }
+        });
+        const cidadesDisponiveis = Array.from(cidadesPossiveisPorUF).sort();
+        currentSelectedCidades = new Set([...currentSelectedCidades].filter(selCidade => cidadesDisponiveis.includes(selCidade)));
+        preencherCheckboxes('cidade-checkboxes', cidadesDisponiveis, currentSelectedCidades, searchCidadeTerm);
+
+        const operadorasPossiveisPorFiltro = new Set();
+        dadosConsolidadosPorCnpjUfCidadePlano.forEach(item => {
+            const ufMatches = currentSelectedUFs.size === 0 || currentSelectedUFs.has(item.UF);
+            const cidadeMatches = currentSelectedCidades.size === 0 || currentSelectedCidades.has(item.CIDADE);
+
+            if (ufMatches && cidadeMatches) {
+                if (item.OPERADORA) operadorasPossiveisPorFiltro.add(item.OPERADORA);
+            }
+        });
+        const operadorasDisponiveis = Array.from(operadorasPossiveisPorFiltro).sort();
+        currentSelectedOperadoras = new Set([...currentSelectedOperadoras].filter(selOperadora => operadorasDisponiveis.includes(selOperadora)));
+        preencherCheckboxes('operadora-checkboxes', operadorasDisponiveis, currentSelectedOperadoras, searchOperadoraTerm);
+
+        const planosPossiveisPorFiltro = new Set();
+        dadosConsolidadosPorCnpjUfCidadePlano.forEach(item => {
+            const ufMatches = currentSelectedUFs.size === 0 || currentSelectedUFs.has(item.UF);
+            const cidadeMatches = currentSelectedCidades.size === 0 || currentSelectedCidades.has(item.CIDADE);
+            const operadoraMatches = currentSelectedOperadoras.size === 0 || currentSelectedOperadoras.has(item.OPERADORA);
+
+            if (ufMatches && cidadeMatches && operadoraMatches) {
+                if (item.PLANO) planosPossiveisPorFiltro.add(item.PLANO);
+            }
+        });
+        const planosDisponiveis = Array.from(planosPossiveisPorFiltro).sort();
+        currentSelectedPlanos = new Set([...currentSelectedPlanos].filter(selPlano => planosDisponiveis.includes(selPlano)));
+        preencherCheckboxes('plano-checkboxes', planosDisponiveis, currentSelectedPlanos, searchPlanoTerm);
+
+        preencherCheckboxes('disponibilidade-checkboxes', [], currentSelectedDisponibilidade);
+
+        let dadosAgrupadosPorUfCidade = new Map();
+
+        dadosConsolidadosPorCnpjUfCidadePlano.forEach(item => {
+            const ufCorresponde = currentSelectedUFs.size === 0 || currentSelectedUFs.has(item.UF);
+            const cidadeCorresponde = currentSelectedCidades.size === 0 || currentSelectedCidades.has(item.CIDADE);
+            const operadoraCorresponde = currentSelectedOperadoras.size === 0 || currentSelectedOperadoras.has(item.OPERADORA);
+            const planoCorresponde = currentSelectedPlanos.size === 0 || currentSelectedPlanos.has(item.PLANO);
+            const flagPassesFilter = currentSelectedDisponibilidade.size === 0 || currentSelectedDisponibilidade.has(item.FLAG_CONSOLIDADA);
+
+            if (ufCorresponde && cidadeCorresponde && operadoraCorresponde && planoCorresponde && flagPassesFilter) {
+                const ufCidadeKey = `${item.UF}-${item.CIDADE}`;
+                if (!dadosAgrupadosPorUfCidade.has(ufCidadeKey)) {
+                    dadosAgrupadosPorUfCidade.set(ufCidadeKey, {
+                        UF: item.UF,
+                        CIDADE: item.CIDADE,
+                        planosStatus: {}
+                    });
+                }
+                const localidadeDetalhe = dadosAgrupadosPorUfCidade.get(ufCidadeKey);
+                const headerKey = `${item.OPERADORA} - ${item.PLANO}`;
+
+                if (!localidadeDetalhe.planosStatus[headerKey]) {
+                    localidadeDetalhe.planosStatus[headerKey] = {
+                        displayValue: '', 
+                        resourcesPositive: new Set(),
+                        resourcesNegative: new Set(),
+                        isGNDIInvolved: false
+                    };
+                }
+
+                const planoInfo = localidadeDetalhe.planosStatus[headerKey];
+
+                if (item.FLAG_CONSOLIDADA === '✅') {
+                    planoInfo.displayValue = '✅'; 
+                    item.RECURSOS_POSITIVOS.forEach(res => planoInfo.resourcesPositive.add(res));
+                } else if (item.FLAG_CONSOLIDADA === '❌' && planoInfo.displayValue !== '✅') {
+                    planoInfo.displayValue = '❌';
+                    item.RECURSOS_NEGATIVOS.forEach(res => planoInfo.resourcesNegative.add(res));
+                }
+
+                if (item.OPERADORA === 'GNDI') {
+                    planoInfo.isGNDIInvolved = true;
+                }
+            }
+        });
+
+        let dadosParaTabela = Array.from(dadosAgrupadosPorUfCidade.values()).map(localidade => {
+            let rowData = {
+                UF: localidade.UF,
+                CIDADE: localidade.CIDADE,
+                hasGNDIPlans: false 
+            };
+            Object.keys(localidade.planosStatus).forEach(key => {
+                const status = localidade.planosStatus[key];
+                
+                let hospitaisParaPopup = [];
+                if (status.displayValue === '✅') {
+                    hospitaisParaPopup = Array.from(status.resourcesPositive);
+                } else if (status.displayValue === '❌') {
+                    hospitaisParaPopup = Array.from(status.resourcesNegative);
+                }
+                
+                rowData[key] = {
+                    value: status.displayValue,
+                    hospitais: hospitaisParaPopup 
+                };
+                if (status.isGNDIInvolved) {
+                    rowData.hasGNDIPlans = true;
+                }
+            });
+            return rowData;
+        }).filter(row => {
+            const hasAnyPlanColumn = Object.keys(row).some(key => key.includes(' - '));
+            return hasAnyPlanColumn;
+        });
+
+        generarTabela(dadosParaTabela);
+    }
+
+    function generarTabela(dados) {
+        const div = document.getElementById('tabela');
+        if (!dados || dados.length === 0) {
+            return div.innerHTML = '<p>Nenhum dado encontrado com os filtros aplicados.</p>';
+        }
+
+        dados.sort((a, b) => {
+            const isAGNDI = a.hasGNDIPlans;
+            const isBGNDI = b.hasGNDIPlans;
+
+            const prioritizeGNDI = currentSelectedOperadoras.size === 0 || 
+                                   (currentSelectedOperadoras.size > 1 && currentSelectedOperadoras.has('GNDI'));
+            
+            if (prioritizeGNDI) {
+                if (isAGNDI && !isBGNDI) return -1;
+                if (!isAGNDI && isBGNDI) return 1;
+            }
+
+            const ufA = (a.UF || '').toUpperCase();
+            const ufB = (b.UF || '').toUpperCase();
+            const cidadeA = (a.CIDADE || '').toUpperCase();
+            const cidadeB = (b.CIDADE || '').toUpperCase();
+
+            if (ufA < ufB) return -1;
+            if (ufA > ufB) return 1;
+            if (cidadeA < cidadeB) return -1;
+            if (cidadeA > cidadeB) return 1;
+            return 0;
+        });
+
+        let headers = ['UF', 'CIDADE'];
+        let dynamicPlanHeaders = new Set();
+
+        dados.forEach(dado => {
+            Object.keys(dado).forEach(key => {
+                if (key.includes(' - ') && typeof dado[key] === 'object' && dado[key] !== null && 'hospitais' in dado[key]) {
+                    dynamicPlanHeaders.add(key);
+                }
+            });
+        });
+
+        headers = headers.concat(Array.from(dynamicPlanHeaders).sort());
+
+        let html = '<table><thead><tr>';
+        headers.forEach(h => html += `<th>${h}</th>`);
+        html += '</tr></thead><tbody>';
+
+        dados.forEach(d => {
+            html += `<tr>
+                <td>${d.UF || ''}</td>
+                <td>${d.CIDADE || ''}</td>`;
+                
+            Array.from(dynamicPlanHeaders).sort().forEach(planHeader => {
+                const cellData = d[planHeader];
+                const displayValue = cellData && cellData.value !== undefined ? cellData.value : ''; 
+                const hospitaisJson = (cellData && cellData.hospitais && cellData.hospitais.length > 0) ? JSON.stringify(cellData.hospitais) : '[]';
+
+                const cellClass = 'clickable'; 
+                const onClickAttribute = `onclick="mostrarHospitais(this)"`; 
+
+                html += `<td data-hospitais='${hospitaisJson}' data-display-value='${displayValue}' ${onClickAttribute} class="${cellClass}">${displayValue}</td>`;
+            });
+            html += `</tr>`;
+        });
+        html += '</tbody></table>';
+        div.innerHTML = html;
+    }
+
+    function mostrarHospitais(cell) {
+        const recursosJson = cell.dataset.hospitais;
+        const recursos = JSON.parse(recursosJson);
+        const displayValue = cell.dataset.displayValue; 
+        const resourceListUl = document.getElementById('hospital-list'); 
+        resourceListUl.innerHTML = ''; 
+
+        if (recursos.length > 0) {
+            recursos.forEach(recurso => {
+                const li = document.createElement('li');
+                li.textContent = recurso;
+                if (displayValue === '✅') {
+                    li.style.color = '#28a745'; 
+                } else if (displayValue === '❌') {
+                    li.style.color = '#dc3545'; 
+                }
+                resourceListUl.appendChild(li);
+            });
+
+            const messageLi = document.createElement('li');
+            messageLi.style.fontStyle = 'italic';
+            messageLi.style.marginTop = '10px';
+            messageLi.style.borderTop = '1px dashed #eee';
+            messageLi.style.paddingTop = '10px';
+
+            if (displayValue === '✅') {
+                messageLi.textContent = `(Todos os recursos listados estão CONTRATADOS para este CNPJ/Plano.)`;
+            } else if (displayValue === '❌') {
+                messageLi.textContent = `(Nenhum recurso listado está CONTRATADO para este CNPJ/Plano.)`;
+            }
+            resourceListUl.appendChild(messageLi);
+
+        } else {
+            const li = document.createElement('li');
+            li.textContent = 'Nenhum detalhe de recurso disponível.'; 
+            resourceListUl.appendChild(li);
+        }
+
+        document.getElementById('hospital-popup').style.display = 'block';
+    }
+
+    function exportarExcel() {
+        const tabela = document.querySelector("#tabela table");
+        if (!tabela) {
+            alert("Nenhuma tabela para exportar.");
+            return;
+        }
+
+        const exportHeaders = Array.from(tabela.querySelectorAll('thead th')).map(th => th.textContent);
+        const exportData = [];
+
+        tabela.querySelectorAll('tbody tr').forEach(row => {
+            const rowData = [];
+            row.querySelectorAll('td').forEach((cell, index) => {
+                if (exportHeaders[index].includes(' - ')) { 
+                    const displayValue = cell.textContent;
+                    const recursos = JSON.parse(cell.dataset.hospitais || '[]');
+                    
+                    if (recursos.length > 0) {
+                        rowData.push(`${displayValue} (${recursos.join(', ')})`);
+                    } else {
+                        rowData.push(displayValue); 
+                    }
+                } else {
+                    rowData.push(cell.textContent);
+                }
+            });
+            exportData.push(rowData);
+        });
+
+        const ws_data = [exportHeaders].concat(exportData);
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(ws_data); 
+
+        XLSX.utils.book_append_sheet(wb, ws, "Planos Filtrados");
+        XLSX.writeFile(wb, 'planos_filtrados_por_localidade.xlsx');
+    }
+
+    document.getElementById('upload').addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const workbook = XLSX.read(e.target.result, { type: 'binary' });
+            dadosConsolidadosPorCnpjUfCidadePlano.clear(); 
+            
+            // Inicializa Sets vazios aqui para garantir que não há erros antes do primeiro preenchimento
+            allUFs = new Set();
+            allCidades = new Set();
+            allOperadoras = new Set();
+            allPlanos = new Set();
+
+            workbook.SheetNames.forEach(sheetName => {
+                const operadora = sheetName.trim().toUpperCase();
+                const sheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
+
+                if (sheet.length === 0) return;
+
+                let tempConsolidation = new Map(); 
+
+                sheet.forEach(row => {
+                    const cnpj = (row['CNPJ'] || '').toString().trim();
+                    const uf = (row['UF'] || '').toString().trim().toUpperCase(); 
+                    const cidade = (row['CIDADE'] || '').toString().trim().toUpperCase(); 
+                    const plano = (row['PLANO'] || '').toString().trim().toUpperCase(); 
+                    const flags = (row['FLAGS'] || '').toString().trim(); 
+                    const recurso = (row['RECURSO'] || '').toString().trim(); 
+
+                    if (!cnpj || !uf || !cidade || !plano) {
+                        console.warn(`Linha sem CNPJ, UF, CIDADE ou Plano na operadora ${operadora}:`, row);
+                        return;
+                    }
+
+                    const key = `${cnpj}-${uf}-${cidade}-${operadora}-${plano}`;
+
+                    if (!tempConsolidation.has(key)) {
+                        tempConsolidation.set(key, {
+                            hasPositiveFlag: false,
+                            hasNegativeFlag: false,
+                            recursosPositivos: new Set(),
+                            recursosNegativos: new Set(),
+                            originalRowData: { 
+                                CNPJ: cnpj,
+                                UF: uf,
+                                CIDADE: cidade,
+                                RAZAO: (row['NOME ESTABELECIMENTO'] || row['RAZAO SOCIAL'] || '').toString().trim().toUpperCase(),
+                                OPERADORA: operadora,
+                                PLANO: plano
+                            }
+                        });
+                    }
+
+                    const currentConsolidation = tempConsolidation.get(key);
+
+                    if (flags === '✓') {
+                        currentConsolidation.hasPositiveFlag = true;
+                        if (recurso) currentConsolidation.recursosPositivos.add(recurso);
+                    } else if (flags === '-') {
+                        currentConsolidation.hasNegativeFlag = true;
+                        if (recurso) currentConsolidation.recursosNegativos.add(recurso);
+                    }
+                });
+
+                tempConsolidation.forEach((value, key) => {
+                    let consolidatedFlag;
+
+                    if (value.hasPositiveFlag) { 
+                        consolidatedFlag = '✅';
+                    } else if (value.hasNegativeFlag) {
+                        consolidatedFlag = '❌';
+                    } else {
+                        consolidatedFlag = ''; 
+                    }
+
+                    dadosConsolidadosPorCnpjUfCidadePlano.set(key, {
+                        CNPJ: value.originalRowData.CNPJ,
+                        UF: value.originalRowData.UF,
+                        CIDADE: value.originalRowData.CIDADE,
+                        RAZAO: value.originalRowData.RAZAO,
+                        OPERADORA: value.originalRowData.OPERADORA,
+                        PLANO: value.originalRowData.PLANO,
+                        FLAG_CONSOLIDADA: consolidatedFlag, 
+                        RECURSOS_POSITIVOS: Array.from(value.recursosPositivos), 
+                        RECURSOS_NEGATIVOS: Array.from(value.recursosNegativos) 
+                    });
+
+                    allUFs.add(value.originalRowData.UF);
+                    allCidades.add(value.originalRowData.CIDADE);
+                    allOperadoras.add(value.originalRowData.OPERADORA);
+                    allPlanos.add(value.originalRowData.PLANO);
+                });
+            });
+
+            // Converte Sets para Arrays após o loop para ordenar
+            allUFs = Array.from(allUFs).sort();
+            allCidades = Array.from(allCidades).sort();
+            allOperadoras = Array.from(allOperadoras).sort();
+            allPlanos = Array.from(allPlanos).sort();
+
+            currentSelectedUFs.clear();
+            currentSelectedCidades.clear();
+            currentSelectedOperadoras.clear();
+            currentSelectedPlanos.clear();
+            currentSelectedDisponibilidade.clear(); 
+
+            atualizarFiltros();
+        };
+        reader.readAsBinaryString(file);
+    });
+
+    document.getElementById('downloadBtn').addEventListener('click', exportarExcel);
+
+    document.querySelectorAll('.select-all-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const targetContainerId = this.dataset.target;
+            const container = document.getElementById(targetContainerId);
+            const targetSet = getTargetSet(targetContainerId);
+
+            const visibleCheckboxes = Array.from(container.querySelectorAll('.checkbox-item'))
+                                             .filter(item => item.style.display !== 'none') 
+                                             .map(item => item.querySelector('input[type="checkbox"]'));
+
+            const allVisibleChecked = visibleCheckboxes.every(cb => cb.checked);
+
+            targetSet.clear(); 
+
+            visibleCheckboxes.forEach(cb => {
+                cb.checked = !allVisibleChecked;
+                if (cb.checked) {
+                    targetSet.add(cb.value);
+                }
+            });
+            atualizarFiltros();
+        });
+    });
+
+    document.querySelectorAll('.filter-search-input').forEach(input => {
+        input.addEventListener('input', function() {
+            atualizarFiltros(); 
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('tabela').innerHTML = '<p>Faça o upload de um arquivo Excel para começar.</p>';
+    });
+
+</script>
+</body>
+</html>
